@@ -41,8 +41,8 @@ jobs:
       - name: Run the build process with Docker
         run: >
           docker run --rm
-          -v ${{ github.workspace }}/build:/vyos
-          -w /vyos
+          -v ${{ github.workspace }}:/vyos
+          -w /vyos/build
           --privileged
           --sysctl net.ipv6.conf.lo.disable_ipv6=0
           -e GOSU_UID
