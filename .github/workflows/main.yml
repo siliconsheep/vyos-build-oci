@@ -37,13 +37,13 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ env.VYOS_BUILD_DOCKER_IMAGE }}
           tags: |
-            type=schedule
-            type=ref,event=branch
-            type=ref,event=tag
-            type=ref,event=pr
-            type=raw,value=${{ env.VYOS_VERSION }}
+            type=raw,value=latest,priority=600,enable=${{ endsWith(github.ref, github.event.repository.default_branch) }}
+            type=raw,value=${{ env.VYOS_VERSION }},priority=600
+            type=sha,enable=true,priority=100,prefix=,suffix=,format=long
+          flavor: |
+            latest=false
       
       - name: Log in to the Container registry
         if: ${{ github.event_name != 'pull_request' }}
