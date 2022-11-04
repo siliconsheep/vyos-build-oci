@@ -33,11 +33,16 @@ jobs:
           repository: vyos/vyos-vm-images
           path: vm-images
 
+      - name: Set gosu UID/GID
+        run: |
+          echo "GOSU_UID=$(id -u)" >> $GITHUB_ENV
+          echo "GOSU_GID=$(id -g)" >> $GITHUB_ENV
+
       - name: Run the build process with Docker
         uses: addnab/docker-run-action@v3
         with:
             image: "vyos/vyos-build:${{ env.VYOS_VERSION }}"
-            options: "-v ${{ github.workspace }}:/vyso -w /vyos --privileged --sysctl net.ipv6.conf.lo.disable_ipv6=0 -e GOSU_UID=$(id -u) -e GOSU_GID=$(id -g)"
+            options: "-v ${{ github.workspace }}:/vyso -w /vyos --privileged --sysctl net.ipv6.conf.lo.disable_ipv6=0 -e GOSU_UID -e GOSU_GID"
             run: |
                 cd /vyos/build
                 ./configure --architecture amd64 --build-by "dieterbocklandt@gmail.com"
