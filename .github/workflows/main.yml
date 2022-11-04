@@ -37,7 +37,7 @@ jobs:
         uses: addnab/docker-run-action@v3
         with:
             image: "vyos/vyos-build:${{ env.VYOS_VERSION }}"
-            options: "-v ${{ github.workspace }}:/vyso -w /vyos --privileged -sysctl net.ipv6.conf.lo.disable_ipv6=0 -e GOSU_UID=$(id -u) -e GOSU_GID=$(id -g)"
+            options: "-v ${{ github.workspace }}:/vyso -w /vyos --privileged --sysctl net.ipv6.conf.lo.disable_ipv6=0 -e GOSU_UID=$(id -u) -e GOSU_GID=$(id -g)"
             run: |
                 cd /vyos/build
                 ./configure --architecture amd64 --build-by "dieterbocklandt@gmail.com"
