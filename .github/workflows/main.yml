@@ -40,7 +40,7 @@ jobs:
 
       - name: Run the build process with Docker
         run: >
-          docker run --rm -it
+          docker run --rm
           -v ${{ github.workspace }}/build:/vyos
           -w /vyos
           --privileged
