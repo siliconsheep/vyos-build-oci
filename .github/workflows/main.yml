@@ -9,7 +9,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  VYOS_BUILD_DOCKER_IMAGE: vyos-build
+  VYOS_BUILD_DOCKER_IMAGE: ${{ github.repository_owner }}/vyos-build
 
 jobs:
   build:
