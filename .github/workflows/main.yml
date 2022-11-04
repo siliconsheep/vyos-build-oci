@@ -60,6 +60,7 @@ jobs:
       - name: Upload image to OCI Cloud Storage
         run: >
           OCI_NAMESPACE=$(./scripts/oci-cli.sh "os ns get" | jq -r '.data') && \
+          echo "OCI Namespace: $OCI_NAMESPACE" && \
           ./scripts/oci-cli.sh "os object put -ns $OCI_NAMESPACE -bn ${{ env.OCI_BUCKET }} --name ${{ env.VYOS_IMAGE_NAME }} --file ${{ env.VYOS_IMAGE_PATH }}" && \
           ./scripts/oci-cli.sh "compute image import from-object -bn ${{ env.OCI_BUCKET }} -c ${{ env.OCI_COMPARTMENT }} -n ${{ env.VYOS_IMAGE_NAME_WO_EXT }} -ns $OCI_NAMESPACE --display-name 'VyOS ${{ env.VYOS_VERSION }}' --launch-mode PARAVIRTUALIZED"
 

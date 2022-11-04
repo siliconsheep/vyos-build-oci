@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 VYOS_VERSION_NUMBER=$(cat data/versions | jq -r 'first(.[])')
 
