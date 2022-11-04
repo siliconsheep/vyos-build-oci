@@ -9,7 +9,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  VYOS_BUILD_DOCKER_IMAGE: ${{ github.repository_owner }}/vyos-build
+  # VYOS_BUILD_DOCKER_IMAGE: ${{ github.repository_owner }}/vyos-build
 
 jobs:
   build:
@@ -33,30 +33,43 @@ jobs:
           repository: vyos/vyos-vm-images
           path: vm-images
 
-      - name: Gather Docker metadata
-        id: meta
-        uses: docker/metadata-action@v4
+      - name: Run the build process with Docker
+        uses: addnab/docker-run-action@v3
         with:
-          images: ${{ env.REGISTRY }}/${{ env.VYOS_BUILD_DOCKER_IMAGE }}
-          tags: |
-            type=raw,value=latest,priority=600,enable=${{ endsWith(github.ref, github.event.repository.default_branch) }}
-            type=raw,value=${{ env.VYOS_VERSION }},priority=600
-            type=sha,enable=true,priority=100,prefix=,suffix=,format=long
-          flavor: |
-            latest=false
+            image: "vyos/vyos-build:${{ env.VYOS_VERSION }}"
+            options: "-v ${{ github.workspace }}:/vyso -w /vyos --privileged -sysctl net.ipv6.conf.lo.disable_ipv6=0 -e GOSU_UID=$(id -u) -e GOSU_GID=$(id -g)"
+            run: |
+                cd /vyos/build
+                ./configure --architecture amd64 --build-by "dieterbocklandt@gmail.com"
+                sudo make iso
       
-      - name: Log in to the Container registry
-        if: ${{ github.event_name != 'pull_request' }}
-        uses: docker/login-action@v2
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+      # Steps for building the container ourselves
+      # - name: Gather Docker metadata
+      #   id: meta
+      #   uses: docker/metadata-action@v4
+      #   with:
+      #     images: ${{ env.REGISTRY }}/${{ env.VYOS_BUILD_DOCKER_IMAGE }}
+      #     tags: |
+      #       type=raw,value=latest,priority=600,enable=${{ endsWith(github.ref, github.event.repository.default_branch) }}
+      #       type=raw,value=${{ env.VYOS_VERSION }},priority=600
+      #       type=sha,enable=true,priority=100,prefix=,suffix=,format=long
+      #     flavor: |
+      #       latest=false
       
-      - name: Build and push
-        uses: docker/build-push-action@v3
-        with:
-          context: build/docker
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+      # - name: Log in to the Container registry
+      #   if: ${{ github.event_name != 'pull_request' }}
+      #   uses: docker/login-action@v2
+      #   with:
+      #     registry: ${{ env.REGISTRY }}
+      #     username: ${{ github.actor }}
+      #     password: ${{ secrets.GITHUB_TOKEN }}
+      
+      # - name: Build and push
+      #   uses: docker/build-push-action@v3
+      #   with:
+      #     context: build/docker
+      #     push: ${{ github.event_name != 'pull_request' }}
+      #     tags: ${{ steps.meta.outputs.tags }}
+      #     labels: ${{ steps.meta.outputs.labels }}
+
+      -
