@@ -14,6 +14,12 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      OCI_CLI_USER: ${{ secrets.OCI_CLI_USER }}
+      OCI_CLI_TENANCY: ${{ secrets.OCI_CLI_TENANCY }}
+      OCI_CLI_FINGERPRINT: ${{ secrets.OCI_CLI_FINGERPRINT }}
+      OCI_CLI_KEY_CONTENT: ${{ secrets.OCI_CLI_KEY_CONTENT }}
+      OCI_CLI_REGION: ${{ secrets.OCI_CLI_REGION }}
     steps:
       - uses: actions/checkout@v3
       
@@ -26,12 +32,6 @@ jobs:
           repository: vyos/vyos-build
           ref: ${{ env.VYOS_VERSION }}
           path: build
-
-      - name: Checkout vyos-vm-images
-        uses: actions/checkout@v3
-        with:
-          repository: vyos/vyos-vm-images
-          path: vm-images
 
       - name: Set gosu UID/GID
         run: |
@@ -51,9 +51,10 @@ jobs:
 
       - name: Set VyOS QCOW2 image
         run: |
-          echo "VYOS_IMAGE_PATH=$(find . -name 'VyOS-*.qcow2')" >> $GITHUB_ENV
-          echo "VYOS_IMAGE_NAME=$(basename $VYOS_IMAGE_PATH)" >> $GITHUB_ENV
-          echo "VYOS_IMAGE_NAME_WO_EXT=$(basename -s .qcow2 $VYOS_IMAGE_PATH)" >> $GITHUB_ENV
+          find ${{ github.workspace }}/build -maxdepth 1 -name 'VyOS-*.qcow2') > .vyos_image_path
+          echo "VYOS_IMAGE_PATH=$(cat .vyos_image_path)" >> $GITHUB_ENV
+          echo "VYOS_IMAGE_NAME=$(basename $(cat .vyos_image_path))" >> $GITHUB_ENV
+          echo "VYOS_IMAGE_NAME_WO_EXT=$(basename -s .qcow2 $(cat .vyos_image_path))" >> $GITHUB_ENV
 
       - name: Get OCI namespace
         uses: oracle-actions/run-oci-cli-command@v1.1
