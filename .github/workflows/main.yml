@@ -51,29 +51,17 @@ jobs:
 
       - name: Set VyOS QCOW2 image
         run: |
-          find ${{ github.workspace }}/build -maxdepth 1 -name 'VyOS-*.qcow2' > .vyos_image_path
+          find ${{ github.workspace }}/build/build -maxdepth 1 -name 'VyOS-*.qcow2' > .vyos_image_path
+          echo "VyOS QCOW2 image found: $(cat .vyos_image_path)"
           echo "VYOS_IMAGE_PATH=$(cat .vyos_image_path)" >> $GITHUB_ENV
           echo "VYOS_IMAGE_NAME=$(basename $(cat .vyos_image_path))" >> $GITHUB_ENV
           echo "VYOS_IMAGE_NAME_WO_EXT=$(basename -s .qcow2 $(cat .vyos_image_path))" >> $GITHUB_ENV
 
-      - name: Get OCI namespace
-        uses: oracle-actions/run-oci-cli-command@v1.1
-        id: oci-get-namespace
-        with:
-          command: 'os ns get'
-          query: 'data'
-
       - name: Upload image to OCI Cloud Storage
-        uses: oracle-actions/run-oci-cli-command@v1.1
-        id: oci-upload-image
-        with:
-          command: 'os object put -ns ${{ steps.oci-get-namespace.outputs.raw_output }} -bn ${{ env.OCI_BUCKET }} --name ${{ env.VYOS_IMAGE_NAME }} --file ${{ env.VYOS_IMAGE_PATH }}'
-      
-      - name: Import image to OCI Compute
-        uses: oracle-actions/run-oci-cli-command@v1.1
-        id: oci-import-image
-        with:
-          command: 'compute image import from-object -bn ${{ env.OCI_BUCKET }} -c ${{ env.OCI_COMPARTMENT }} -n ${{ env.VYOS_IMAGE_NAME_WO_EXT }} -ns ${{ steps.oci-get-namespace.outputs.raw_output }} --display-name "VyOS ${{ env.VYOS_VERSION }}" --launch-mode PARAVIRTUALIZED'
+        run: >
+          OCI_NAMESPACE=$(./scripts/oci-cli.sh "os ns get" | jq -r '.data') && \
+          ./scripts/oci-cli.sh "os object put -ns $OCI_NAMESPACE -bn ${{ env.OCI_BUCKET }} --name ${{ env.VYOS_IMAGE_NAME }} --file ${{ env.VYOS_IMAGE_PATH }}" && \
+          ./scripts/oci-cli.sh "compute image import from-object -bn ${{ env.OCI_BUCKET }} -c ${{ env.OCI_COMPARTMENT }} -n ${{ env.VYOS_IMAGE_NAME_WO_EXT }} -ns $OCI_NAMESPACE --display-name 'VyOS ${{ env.VYOS_VERSION }}' --launch-mode PARAVIRTUALIZED"
 
       # Steps for building the container ourselves
       # - name: Gather Docker metadata
