@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-docker run --rm \
+docker run --rm ${2} \
   -e OCI_CLI_USER \
   -e OCI_CLI_TENANCY \
   -e OCI_CLI_FINGERPRINT \
