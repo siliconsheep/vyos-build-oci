@@ -57,14 +57,13 @@ jobs:
           echo "VyOS QCOW2 image found: $(cat .vyos_image_path)"
           echo "VYOS_IMAGE_PATH=$(cat .vyos_image_path)" >> $GITHUB_ENV
           echo "VYOS_IMAGE_NAME=$(basename $(cat .vyos_image_path))" >> $GITHUB_ENV
-          echo "VYOS_IMAGE_NAME_WO_EXT=$(basename -s .qcow2 $(cat .vyos_image_path))" >> $GITHUB_ENV
 
       - name: Upload image to OCI Cloud Storage
         run: |
           ./scripts/oci-cli.sh "os ns get" | jq -r '.data' > .oci_namespace
           echo "OCI Namespace: $(cat .oci_namespace)"
           ./scripts/oci-cli.sh "os object put -ns $(cat .oci_namespace) -bn ${{ env.OCI_BUCKET }} --name ${{ env.VYOS_IMAGE_NAME }} --file /image/vyos.qcow2" "-v ${{ env.VYOS_IMAGE_PATH }}:/image/vyos.qcow2:ro"
-          ./scripts/oci-cli.sh "compute image import from-object -bn ${{ env.OCI_BUCKET }} -c ${{ secrets.OCI_COMPARTMENT }} --name ${{ env.VYOS_IMAGE_NAME_WO_EXT }} -ns $(cat .oci_namespace) --display-name VyOS-v${{ env.VYOS_VERSION_NO }}-${{ env.VYOS_VERSION }} --launch-mode PARAVIRTUALIZED"
+          ./scripts/oci-cli.sh "compute image import from-object -bn ${{ env.OCI_BUCKET }} -c ${{ secrets.OCI_COMPARTMENT }} --name ${{ env.VYOS_IMAGE_NAME }} -ns $(cat .oci_namespace) --display-name VyOS-v${{ env.VYOS_VERSION_NO }}-${{ env.VYOS_VERSION }} --launch-mode PARAVIRTUALIZED"
 
       # Steps for building the container ourselves
       # - name: Gather Docker metadata
