@@ -64,7 +64,7 @@ jobs:
           ./scripts/oci-cli.sh "os ns get" | jq -r '.data' > .oci_namespace
           echo "OCI Namespace: $(cat .oci_namespace)"
           ./scripts/oci-cli.sh "os object put -ns $(cat .oci_namespace) -bn ${{ env.OCI_BUCKET }} --name ${{ env.VYOS_IMAGE_NAME }} --file /image/vyos.qcow2" "-v ${{ env.VYOS_IMAGE_PATH }}:/image/vyos.qcow2:ro"
-          ./scripts/oci-cli.sh "compute image import from-object -bn ${{ env.OCI_BUCKET }} -c ${{ secrets.OCI_COMPARTMENT }} -n ${{ env.VYOS_IMAGE_NAME_WO_EXT }} -ns $(cat .oci_namespace) --display-name \"VyOS v${{ env.VYOS_VERSION_NO }} (${{ env.VYOS_VERSION }})\" --launch-mode PARAVIRTUALIZED"
+          ./scripts/oci-cli.sh "compute image import from-object -bn ${{ env.OCI_BUCKET }} -c ${{ secrets.OCI_COMPARTMENT }} --name ${{ env.VYOS_IMAGE_NAME_WO_EXT }} -ns $(cat .oci_namespace) --display-name \"VyOS v${{ env.VYOS_VERSION_NO }} (${{ env.VYOS_VERSION }})\" --launch-mode PARAVIRTUALIZED"
 
       # Steps for building the container ourselves
       # - name: Gather Docker metadata
