@@ -3,7 +3,7 @@
 mkdir -p /vyos/output
 
 echo "###### 1. Creating VyOS ISO ######"
-pushd build
+pushd build > /dev/null 2>&1
 ./configure \
   --architecture amd64 \
   --build-by "dieterbocklandt@gmail.com" \
@@ -14,16 +14,16 @@ sudo make iso
 
 VYOS_ISO_PATH=$(find ./build -maxdepth 1 -name 'vyos-*.iso')
 echo "VyOS ISO build succeeded: ${VYOS_ISO_PATH}"
-popd
+popd > /dev/null 2>&1
 
 echo "###### 2. Setting up Ansible ######"
 
 sudo apt install -y python3 python3-pip
-pip install -U ansible
+pip3 install -U ansible
 
 echo "###### 3. Running Ansible QEMU Playbook ######"
 
-pushd vm-images
+pushd vm-images > /dev/null 2>&1
 ansible-playbook qemu.yml \
   -e cloud_init=true \
   -e cloud_init_ds=Oracle \
@@ -36,4 +36,4 @@ ansible-playbook qemu.yml \
   -e vyos_version="${VYOS_VERSION_NO}" \
   -e keep_user=true
   -e vyos_images_dir=/vyos/output
-popd
+popd > /dev/null 2>&1
