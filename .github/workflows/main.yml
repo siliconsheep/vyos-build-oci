@@ -32,6 +32,12 @@ jobs:
           repository: vyos/vyos-build
           ref: ${{ env.VYOS_VERSION }}
           path: build
+      
+      - name: Checkout vyos-vm-images
+        uses: actions/checkout@v3
+        with:
+          repository: vyos/vyos-vm-images
+          path: vm-images
 
       - name: Set additional VyOS environment variables
         run: |
@@ -43,7 +49,7 @@ jobs:
         run: >
           docker run --rm
           -v ${{ github.workspace }}:/vyos
-          -w /vyos/build
+          -w /vyos
           --privileged
           --sysctl net.ipv6.conf.lo.disable_ipv6=0
           -e VYOS_VERSION_NO
@@ -53,7 +59,7 @@ jobs:
 
       - name: Set VyOS QCOW2 image
         run: |
-          find ${{ github.workspace }}/build/build -maxdepth 1 -name 'VyOS-*.qcow2' > .vyos_image_path
+          find ${{ github.workspace }}/output -maxdepth 1 -name 'vyos-*.qcow2' > .vyos_image_path
           echo "VyOS QCOW2 image found: $(cat .vyos_image_path)"
           echo "VYOS_IMAGE_PATH=$(cat .vyos_image_path)" >> $GITHUB_ENV
           echo "VYOS_IMAGE_NAME=$(basename $(cat .vyos_image_path))" >> $GITHUB_ENV
@@ -64,32 +70,3 @@ jobs:
           echo "OCI Namespace: $(cat .oci_namespace)"
           ./scripts/oci-cli.sh "os object put -ns $(cat .oci_namespace) -bn ${{ env.OCI_BUCKET }} --name ${{ env.VYOS_IMAGE_NAME }} --file /image/vyos.qcow2" "-v ${{ env.VYOS_IMAGE_PATH }}:/image/vyos.qcow2:ro"
           ./scripts/oci-cli.sh "compute image import from-object -bn ${{ env.OCI_BUCKET }} -c ${{ secrets.OCI_COMPARTMENT }} --name ${{ env.VYOS_IMAGE_NAME }} -ns $(cat .oci_namespace) --display-name VyOS-v${{ env.VYOS_VERSION_NO }}-${{ env.VYOS_VERSION }} --launch-mode PARAVIRTUALIZED"
-
-      # Steps for building the container ourselves
-      # - name: Gather Docker metadata
-      #   id: meta
-      #   uses: docker/metadata-action@v4
-      #   with:
-      #     images: ${{ env.REGISTRY }}/${{ env.VYOS_BUILD_DOCKER_IMAGE }}
-      #     tags: |
-      #       type=raw,value=latest,priority=600,enable=${{ endsWith(github.ref, github.event.repository.default_branch) }}
-      #       type=raw,value=${{ env.VYOS_VERSION }},priority=600
-      #       type=sha,enable=true,priority=100,prefix=,suffix=,format=long
-      #     flavor: |
-      #       latest=false
-      
-      # - name: Log in to the Container registry
-      #   if: ${{ github.event_name != 'pull_request' }}
-      #   uses: docker/login-action@v2
-      #   with:
-      #     registry: ${{ env.REGISTRY }}
-      #     username: ${{ github.actor }}
-      #     password: ${{ secrets.GITHUB_TOKEN }}
-      
-      # - name: Build and push
-      #   uses: docker/build-push-action@v3
-      #   with:
-      #     context: build/docker
-      #     push: ${{ github.event_name != 'pull_request' }}
-      #     tags: ${{ steps.meta.outputs.tags }}
-      #     labels: ${{ steps.meta.outputs.labels }}
