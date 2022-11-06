@@ -17,9 +17,8 @@ echo "VyOS ISO build succeeded: ${VYOS_ISO_PATH}"
 popd > /dev/null 2>&1
 
 echo "###### 2. Setting up Ansible ######"
-
-sudo apt install -y python3 python3-pip
-pip3 install -U ansible
+sudo pip3 install wheel
+sudo pip3 install ansible
 
 echo "###### 3. Running Ansible QEMU Playbook ######"
 
