@@ -12,7 +12,7 @@ pushd build > /dev/null 2>&1
 
 sudo make iso
 
-VYOS_ISO_PATH=$(find ./build -maxdepth 1 -name 'vyos-*.iso')
+VYOS_ISO_PATH=$(find $(pwd)/build -maxdepth 1 -name 'vyos-*.iso')
 echo "VyOS ISO build succeeded: ${VYOS_ISO_PATH}"
 popd > /dev/null 2>&1
 
@@ -33,6 +33,6 @@ ansible-playbook qemu.yml \
   -e enable_ssh=true \
   -e iso_local="${VYOS_ISO_PATH}" \
   -e vyos_version="${VYOS_VERSION_NO}" \
-  -e keep_user=true
+  -e keep_user=true \
   -e vyos_images_dir=/vyos/output
 popd > /dev/null 2>&1
